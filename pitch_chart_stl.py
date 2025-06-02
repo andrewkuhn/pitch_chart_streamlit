@@ -4,9 +4,7 @@ import pandas as pd
 import datetime
 import os
 
-# --- LOAD ENVIRONMENT VARIABLES ---
-
-# --- DATABASE CONNECTION SETUP ---
+# db setup
 def get_db_params():
     return {
         "dbname": st.secrets["DB_NAME"],
@@ -20,7 +18,7 @@ def get_connection():
     params = get_db_params()
     return psycopg2.connect(**params)
 
-# --- ENSURE TABLES EXIST ---
+# table check
 def ensure_tables():
     conn = get_connection()
     cur = conn.cursor()
@@ -47,7 +45,7 @@ def ensure_tables():
 
 ensure_tables()
 
-# --- GET PITCHERS FROM DB ---
+# pitchers db
 def get_pitchers():
     conn = get_connection()
     cur = conn.cursor()
@@ -56,7 +54,7 @@ def get_pitchers():
     conn.close()
     return pitchers
 
-# --- SESSION STATE SETUP ---
+# session state setup
 if 'page' not in st.session_state:
     st.session_state.page = 'pitcher_date'
 if 'pitcher' not in st.session_state:
@@ -64,7 +62,7 @@ if 'pitcher' not in st.session_state:
 if 'game_date' not in st.session_state:
     st.session_state.game_date = datetime.date.today()
 
-# --- PITCH FORM STATE ---
+# pitch state
 if 'pitch_type' not in st.session_state:
     st.session_state.pitch_type = ""
 if 'velocity' not in st.session_state:
@@ -78,7 +76,7 @@ if 'swing' not in st.session_state:
 
 st.title("Pitch Chart")
 
-# --- PAGE 1: SELECT PITCHER & DATE ---
+# page 1
 if st.session_state.page == 'pitcher_date':
     st.header("Select Pitcher and Date")
 
@@ -95,7 +93,7 @@ if st.session_state.page == 'pitcher_date':
             st.session_state.page = 'pitch_entry'
             st.rerun()
 
-# --- PAGE 2: PITCH ENTRY ---
+# page 2
 elif st.session_state.page == 'pitch_entry':
     st.header(f"Pitch Entry for {st.session_state.game_date}")
 
@@ -147,7 +145,7 @@ elif st.session_state.page == 'pitch_entry':
                 except Exception as e:
                     st.error(f"Error saving pitch: {e}")
 
-    # --- DISPLAY PITCHES TABLE ---
+    # pitch table
     try:
         conn = get_connection()
         df = pd.read_sql("""
