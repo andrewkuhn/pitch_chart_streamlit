@@ -3,19 +3,17 @@ import psycopg2
 import pandas as pd
 import datetime
 import os
-from dotenv import load_dotenv
 
 # --- LOAD ENVIRONMENT VARIABLES ---
-load_dotenv()
 
 # --- DATABASE CONNECTION SETUP ---
 def get_db_params():
     return {
-        "dbname": os.getenv("DB_NAME"),
-        "user": os.getenv("DB_USER"),
-        "password": os.getenv("DB_PASSWORD"),
-        "host": os.getenv("DB_HOST"),
-        "port": os.getenv("DB_PORT"),
+        "dbname": st.secrets["DB_NAME"],
+        "user": st.secrets["DB_USER"],
+        "password": st.secrets["DB_PASSWORD"],
+        "host": st.secrets["DB_HOST"],
+        "port": st.secrets["DB_PORT"],
     }
 
 def get_connection():
@@ -169,8 +167,7 @@ elif st.session_state.page == 'pitch_entry':
                 df.reset_index(drop=True),
                 use_container_width=True,
                 hide_index=True
-)
-
+            )
 
     except Exception as e:
         st.error(f"Error loading pitches: {e}")
