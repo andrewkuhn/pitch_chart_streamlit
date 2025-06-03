@@ -70,12 +70,12 @@ if 'velocity' not in st.session_state:
     st.session_state.velocity = 0
 if 'result' not in st.session_state:
     st.session_state.result = ""
+if 'risp' not in st.session_state:
+    st.session_state.risp = False
 if 'ground_ball' not in st.session_state:
     st.session_state.ground_ball = False
 if 'swing' not in st.session_state:
     st.session_state.swing = False
-if 'risp' not in st.session_state:
-    st.session_state.risp = False
 
 st.title("Pitch Chart")
 
