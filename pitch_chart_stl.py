@@ -149,7 +149,7 @@ elif st.session_state.page == 'pitch_entry':
     try:
         conn = get_connection()
         df = pd.read_sql("""
-            SELECT id, pitch_type, velocity, swing, ground_ball, result 
+            SELECT name, id, pitch_type, velocity, swing, ground_ball, result 
             FROM pitches 
             WHERE pitcher = %s AND date = %s
             ORDER BY id ASC
