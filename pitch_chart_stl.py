@@ -160,7 +160,7 @@ elif st.session_state.page == 'pitch_entry':
             st.info("No pitches entered for this game yet.")
         else:
             df["Pitch #"] = range(1, len(df) + 1)
-            df = df[["Pitch #", "pitch_type", "velocity", "swing", "ground_ball", "result"]]
+            df = df[["Name", "Pitch #", "pitch_type", "velocity", "swing", "ground_ball", "result"]]
             st.dataframe(
                 df.reset_index(drop=True),
                 use_container_width=True,
