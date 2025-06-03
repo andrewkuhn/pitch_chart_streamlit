@@ -29,18 +29,18 @@ def ensure_tables():
         )
     """)
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS pitches (
-            id SERIAL PRIMARY KEY,
-            pitcher TEXT NOT NULL,
-            date DATE NOT NULL,
-            pitch_type TEXT,
-            velocity INTEGER,
-            swing BOOLEAN,
-            ground_ball BOOLEAN,
-            risp BOOLEAN,
-            result TEXT
-        )
-    """)
+    CREATE TABLE IF NOT EXISTS pitches (
+        id SERIAL PRIMARY KEY,
+        pitcher TEXT NOT NULL,
+        date DATE NOT NULL,
+        pitch_type TEXT,
+        velocity INTEGER,
+        swing BOOLEAN,
+        ground_ball BOOLEAN,
+        result TEXT,
+        batter_hand TEXT CHECK (batter_hand IN ('L', 'R'))
+    )
+""")
     conn.commit()
     conn.close()
 
@@ -76,6 +76,8 @@ if 'ground_ball' not in st.session_state:
     st.session_state.ground_ball = False
 if 'swing' not in st.session_state:
     st.session_state.swing = False
+if 'batter_hand' not in st.session_state:
+    st.session_state.batter_hand = "R"
 
 st.title("Pitch Chart")
 
@@ -109,8 +111,9 @@ elif st.session_state.page == 'pitch_entry':
             result = st.selectbox("Result", [""] + ["Ball", "Strike", "Foul Ball", "Out", "1B", "2B", "3B", "HR"], index=0)
 
         with col2:
-            ground_ball = st.checkbox("Ground Ball?")
+            batter_hand = st.radio("Batter Handedness", ["L", "R"], horizontal=True)
             swing = st.checkbox("Swing?")
+            ground_ball = st.checkbox("Ground Ball?")
             risp = st.checkbox("RISP")
 
         submitted = st.form_submit_button("Submit Pitch")
@@ -123,8 +126,8 @@ elif st.session_state.page == 'pitch_entry':
                     conn = get_connection()
                     cur = conn.cursor()
                     cur.execute("""
-                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, swing, ground_ball, risp, result)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, swing, ground_ball, risp, batter_hand, result)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (
                         st.session_state.pitcher,
                         st.session_state.game_date,
@@ -133,6 +136,7 @@ elif st.session_state.page == 'pitch_entry':
                         swing,
                         ground_ball,
                         risp,
+                        batter_hand,
                         result if result != "" else None
                     ))
                     conn.commit()
@@ -146,6 +150,7 @@ elif st.session_state.page == 'pitch_entry':
                     st.session_state.ground_ball = False
                     st.session_state.swing = False
                     st.session_state.risp = False
+                    st.session_state.batter_hand = "R"
                     st.rerun()
 
                 except Exception as e:
