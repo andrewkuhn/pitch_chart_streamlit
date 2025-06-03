@@ -18,14 +18,14 @@ def get_connection():
     params = get_db_params()
     return psycopg2.connect(**params)
 
-# table check
 def ensure_tables():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS pitchers (
             id SERIAL PRIMARY KEY,
-            name TEXT UNIQUE NOT NULL
+            name TEXT UNIQUE NOT NULL,
+            handedness TEXT CHECK (handedness IN ('L', 'R')) NOT NULL DEFAULT 'R'
         )
     """)
     cur.execute("""
@@ -37,7 +37,6 @@ def ensure_tables():
             velocity INTEGER,
             swing BOOLEAN,
             ground_ball BOOLEAN,
-            risp BOOLEAN,
             result TEXT
         )
     """)
@@ -46,7 +45,6 @@ def ensure_tables():
 
 ensure_tables()
 
-# pitchers db
 def get_pitchers():
     conn = get_connection()
     cur = conn.cursor()
@@ -55,27 +53,43 @@ def get_pitchers():
     conn.close()
     return pitchers
 
+def get_pitcher_handedness(name):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT handedness FROM pitchers WHERE name = %s", (name,))
+    result = cur.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+def add_pitcher(name, handedness):
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            INSERT INTO pitchers (name, handedness)
+            VALUES (%s, %s)
+            ON CONFLICT (name) DO NOTHING
+        """, (name, handedness))
+        conn.commit()
+    finally:
+        conn.close()
+
 # session state setup
 if 'page' not in st.session_state:
     st.session_state.page = 'pitcher_date'
 if 'pitcher' not in st.session_state:
     st.session_state.pitcher = None
 if 'game_date' not in st.session_state:
-    st.session_state.game_date = datetime.date.today()
+    # Set to Eastern time
+    from pytz import timezone
+    eastern = timezone('US/Eastern')
+    today_eastern = datetime.datetime.now(eastern).date()
+    st.session_state.game_date = today_eastern
 
 # pitch state
-if 'pitch_type' not in st.session_state:
-    st.session_state.pitch_type = ""
-if 'velocity' not in st.session_state:
-    st.session_state.velocity = 0
-if 'result' not in st.session_state:
-    st.session_state.result = ""
-if 'risp' not in st.session_state:
-    st.session_state.risp = False
-if 'ground_ball' not in st.session_state:
-    st.session_state.ground_ball = False
-if 'swing' not in st.session_state:
-    st.session_state.swing = False
+for key in ['pitch_type', 'velocity', 'result', 'ground_ball', 'swing']:
+    if key not in st.session_state:
+        st.session_state[key] = "" if key in ['pitch_type', 'result'] else False if key in ['ground_ball', 'swing'] else 0
 
 st.title("Pitch Chart")
 
@@ -86,6 +100,22 @@ if st.session_state.page == 'pitcher_date':
     pitchers = get_pitchers()
     pitcher = st.selectbox("Select Pitcher", options=[""] + pitchers)
     game_date = st.date_input("Game Date", value=st.session_state.game_date)
+
+    if pitcher:
+        handedness = get_pitcher_handedness(pitcher)
+        if handedness:
+            st.markdown(f"**Handedness:** {handedness}")
+    else:
+        st.subheader("Add New Pitcher")
+        new_pitcher_name = st.text_input("Pitcher Name")
+        new_pitcher_hand = st.radio("Handedness", ["L", "R"], horizontal=True)
+        if st.button("Add Pitcher"):
+            if new_pitcher_name:
+                add_pitcher(new_pitcher_name, new_pitcher_hand)
+                st.success(f"Pitcher {new_pitcher_name} added.")
+                st.rerun()
+            else:
+                st.warning("Please enter a name for the new pitcher.")
 
     if st.button("Continue"):
         if not pitcher:
@@ -111,7 +141,6 @@ elif st.session_state.page == 'pitch_entry':
         with col2:
             ground_ball = st.checkbox("Ground Ball?")
             swing = st.checkbox("Swing?")
-            risp = st.checkbox("RISP")
 
         submitted = st.form_submit_button("Submit Pitch")
 
@@ -123,8 +152,8 @@ elif st.session_state.page == 'pitch_entry':
                     conn = get_connection()
                     cur = conn.cursor()
                     cur.execute("""
-                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, swing, ground_ball, risp, result)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, swing, ground_ball, result)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """, (
                         st.session_state.pitcher,
                         st.session_state.game_date,
@@ -132,31 +161,25 @@ elif st.session_state.page == 'pitch_entry':
                         velocity if velocity > 0 else None,
                         swing,
                         ground_ball,
-                        risp,
                         result if result != "" else None
                     ))
                     conn.commit()
                     conn.close()
                     st.success("Pitch saved!")
 
-                    # Reset inputs
-                    st.session_state.pitch_type = ""
-                    st.session_state.velocity = 0
-                    st.session_state.result = ""
-                    st.session_state.ground_ball = False
-                    st.session_state.swing = False
-                    st.session_state.risp = False
-                    st.rerun()
+                    for key in ['pitch_type', 'velocity', 'result', 'ground_ball', 'swing']:
+                        st.session_state[key] = "" if key in ['pitch_type', 'result'] else False if key in ['ground_ball', 'swing'] else 0
 
+                    st.rerun()
                 except Exception as e:
                     st.error(f"Error saving pitch: {e}")
 
-    # pitch table
+    # pitches table
     try:
         conn = get_connection()
         df = pd.read_sql("""
-            SELECT id, pitch_type, velocity, swing, ground_ball, risp, result 
-            FROM pitches 
+            SELECT id, pitch_type, velocity, swing, ground_ball, result
+            FROM pitches
             WHERE pitcher = %s AND date = %s
             ORDER BY id ASC
         """, conn, params=(st.session_state.pitcher, st.session_state.game_date))
@@ -166,12 +189,8 @@ elif st.session_state.page == 'pitch_entry':
             st.info("No pitches entered for this game yet.")
         else:
             df["Pitch #"] = range(1, len(df) + 1)
-            df = df[["Pitch #", "pitch_type", "velocity", "swing", "ground_ball", "risp", "result"]]
-            st.dataframe(
-                df.reset_index(drop=True),
-                use_container_width=True,
-                hide_index=True
-            )
+            df = df[["Pitch #", "pitch_type", "velocity", "swing", "ground_ball", "result"]]
+            st.dataframe(df, use_container_width=True, hide_index=True)
 
     except Exception as e:
         st.error(f"Error loading pitches: {e}")
