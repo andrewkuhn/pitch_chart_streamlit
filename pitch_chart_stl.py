@@ -37,6 +37,7 @@ def ensure_tables():
             velocity INTEGER,
             swing BOOLEAN,
             ground_ball BOOLEAN,
+            risp BOOLEAN,
             result TEXT
         )
     """)
@@ -73,6 +74,8 @@ if 'ground_ball' not in st.session_state:
     st.session_state.ground_ball = False
 if 'swing' not in st.session_state:
     st.session_state.swing = False
+if 'risp' not in st.session_state:
+    st.session_state.risp = False
 
 st.title("Pitch Chart")
 
@@ -108,6 +111,7 @@ elif st.session_state.page == 'pitch_entry':
         with col2:
             ground_ball = st.checkbox("Ground Ball?")
             swing = st.checkbox("Swing?")
+            risp = st.checkbox("RISP")
 
         submitted = st.form_submit_button("Submit Pitch")
 
@@ -119,8 +123,8 @@ elif st.session_state.page == 'pitch_entry':
                     conn = get_connection()
                     cur = conn.cursor()
                     cur.execute("""
-                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, swing, ground_ball, result)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, swing, ground_ball, risp, result)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     """, (
                         st.session_state.pitcher,
                         st.session_state.game_date,
@@ -128,6 +132,7 @@ elif st.session_state.page == 'pitch_entry':
                         velocity if velocity > 0 else None,
                         swing,
                         ground_ball,
+                        risp,
                         result if result != "" else None
                     ))
                     conn.commit()
@@ -140,6 +145,7 @@ elif st.session_state.page == 'pitch_entry':
                     st.session_state.result = ""
                     st.session_state.ground_ball = False
                     st.session_state.swing = False
+                    st.session_state.risp = False
                     st.rerun()
 
                 except Exception as e:
@@ -149,7 +155,7 @@ elif st.session_state.page == 'pitch_entry':
     try:
         conn = get_connection()
         df = pd.read_sql("""
-            SELECT id, pitch_type, velocity, swing, ground_ball, result 
+            SELECT id, pitch_type, velocity, swing, ground_ball, risp, result 
             FROM pitches 
             WHERE pitcher = %s AND date = %s
             ORDER BY id ASC
@@ -160,7 +166,7 @@ elif st.session_state.page == 'pitch_entry':
             st.info("No pitches entered for this game yet.")
         else:
             df["Pitch #"] = range(1, len(df) + 1)
-            df = df[["Pitch #", "pitch_type", "velocity", "swing", "ground_ball", "result"]]
+            df = df[["Pitch #", "pitch_type", "velocity", "swing", "ground_ball", "risp", "result"]]
             st.dataframe(
                 df.reset_index(drop=True),
                 use_container_width=True,
