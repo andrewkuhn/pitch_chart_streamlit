@@ -152,7 +152,7 @@ elif st.session_state.page == 'pitch_entry':
             SELECT id, pitch_type, velocity, swing, ground_ball, result 
             FROM pitches 
             WHERE pitcher = %s AND date = %s
-            ORDER BY id DESC
+            ORDER BY id ASC
         """, conn, params=(st.session_state.pitcher, st.session_state.game_date))
         conn.close()
 
