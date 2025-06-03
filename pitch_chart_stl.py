@@ -95,7 +95,7 @@ if st.session_state.page == 'pitcher_date':
 
 # page 2
 elif st.session_state.page == 'pitch_entry':
-    st.header(f"Pitch Entry for {st.session_state.game_date}")
+    st.header(f"Pitch Entry for {st.session_state.pitcher} on {st.session_state.game_date}")
 
     with st.form("pitch_form"):
         col1, col2 = st.columns(2)
