@@ -109,6 +109,7 @@ elif st.session_state.page == 'pitch_entry':
         with col1:
             pitch_type = st.selectbox("Pitch Type", [""] + ["FF", "FT", "CH", "CU", "SL", "SP"], index=0)
             velocity = st.number_input("Velocity", min_value=0, max_value=120, step=1, value=None)
+            inning = st.selectbox("Inning", list(range(1, 10)))  # ✅ NEW LINE
             result = st.selectbox("Result", [""] + ["Ball", "Strike", "Foul Ball", "Strikeout", "Walk", "Out", "1B", "2B", "3B", "HR", "Reach On Error", "HBP", "Fielder's Choice"], index=0)
 
         with col2:
@@ -127,13 +128,14 @@ elif st.session_state.page == 'pitch_entry':
                     conn = get_connection()
                     cur = conn.cursor()
                     cur.execute("""
-                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, swing, ground_ball, risp, result, batter_hand)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, inning, swing, ground_ball, risp, result, batter_hand)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (
                         st.session_state.pitcher,
                         st.session_state.game_date,
                         pitch_type,
                         velocity if velocity > 0 else None,
+                        inning,
                         swing,
                         ground_ball,
                         risp,
@@ -162,7 +164,7 @@ elif st.session_state.page == 'pitch_entry':
     try:
         conn = get_connection()
         df = pd.read_sql("""
-            SELECT id, pitch_type, velocity, batter_hand, swing, ground_ball, risp, result 
+            SELECT id, inning, pitch_type, velocity, batter_hand, swing, ground_ball, risp, result 
             FROM pitches 
             WHERE pitcher = %s AND date = %s
             ORDER BY id ASC
@@ -173,7 +175,7 @@ elif st.session_state.page == 'pitch_entry':
             st.info("No pitches entered for this game yet.")
         else:
             df["Pitch #"] = range(1, len(df) + 1)
-            df = df[["Pitch #", "pitch_type", "velocity", "batter_hand", "swing", "ground_ball", "risp", "result"]]
+            df = df[["Pitch #", "inning", "pitch_type", "velocity", "batter_hand", "swing", "ground_ball", "risp", "result"]]
             st.dataframe(
                 df.reset_index(drop=True),
                 use_container_width=True,
