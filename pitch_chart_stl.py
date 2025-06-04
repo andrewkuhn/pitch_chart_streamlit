@@ -116,10 +116,10 @@ elif st.session_state.page == 'pitch_entry':
 
         with col2:
             batter_hand = st.radio("Batter Handedness", ["L", "R"], horizontal=True)
+            location = st.selectbox("Location in Strike Zone", ["ULeft", "UMiddle", "URight","MLeft", "MMiddle", "MRight", "LLeft", "LMiddle", "LRight"
             swing = st.checkbox("Swing?")
             ground_ball = st.checkbox("Ground Ball?")
             risp = st.checkbox("RISP")
-            location = st.selectbox("Location in Strike Zone", ["ULeft", "UMiddle", "URight","MLeft", "MMiddle", "MRight", "LLeft", "LMiddle", "LRight"
 ])
 
 
