@@ -127,7 +127,7 @@ elif st.session_state.page == 'pitch_entry':
                     conn = get_connection()
                     cur = conn.cursor()
                     cur.execute("""
-                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, batter_hand, swing, ground_ball, risp, result)
+                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, swing, ground_ball, risp, result, batter_hand)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (
                         st.session_state.pitcher,
@@ -137,8 +137,9 @@ elif st.session_state.page == 'pitch_entry':
                         swing,
                         ground_ball,
                         risp,
-                        batter_hand,
                         result if result != "" else None
+                        batter_hand,
+                        
                     ))
                     conn.commit()
                     conn.close()
