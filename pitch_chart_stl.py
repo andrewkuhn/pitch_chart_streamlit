@@ -108,7 +108,7 @@ elif st.session_state.page == 'pitch_entry':
         with col1:
             pitch_type = st.selectbox("Pitch Type", [""] + ["FF", "2S", "CH", "CU", "SL", "SP"], index=0)
             velocity = st.number_input("Velocity", min_value=0, max_value=120, step=1, value=None)
-            result = st.selectbox("Result", [""] + ["Ball", "Strike", "Foul Ball", "Out", "1B", "2B", "3B", "HR"], index=0)
+            result = st.selectbox("Result", [""] + ["Ball", "Strike", "Foul Ball", "Strikeout", "Walk", "Out", "1B", "2B", "3B", "HR", "Reach On Error", "HBP", "Fielder's Choice"], index=0)
 
         with col2:
             batter_hand = st.radio("Batter Handedness", ["L", "R"], horizontal=True)
