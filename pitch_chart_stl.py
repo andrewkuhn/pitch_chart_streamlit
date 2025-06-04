@@ -137,8 +137,8 @@ elif st.session_state.page == 'pitch_entry':
                         swing,
                         ground_ball,
                         risp,
-                        result if result != "" else None
-                        batter_hand,
+                        result if result != "" else None,
+                        batter_hand
                         
                     ))
                     conn.commit()
