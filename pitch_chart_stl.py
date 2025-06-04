@@ -35,10 +35,10 @@ def ensure_tables():
         date DATE NOT NULL,
         pitch_type TEXT,
         velocity INTEGER,
+        batter_hand TEXT CHECK (batter_hand IN ('L', 'R'))
         swing BOOLEAN,
         ground_ball BOOLEAN,
         result TEXT,
-        batter_hand TEXT CHECK (batter_hand IN ('L', 'R'))
     )
 """)
     conn.commit()
@@ -126,7 +126,7 @@ elif st.session_state.page == 'pitch_entry':
                     conn = get_connection()
                     cur = conn.cursor()
                     cur.execute("""
-                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, swing, ground_ball, risp, batter_hand, result)
+                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, batter_hand, swing, ground_ball, risp, result)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (
                         st.session_state.pitcher,
@@ -160,7 +160,7 @@ elif st.session_state.page == 'pitch_entry':
     try:
         conn = get_connection()
         df = pd.read_sql("""
-            SELECT id, pitch_type, velocity, swing, ground_ball, risp, result 
+            SELECT id, pitch_type, velocity, batter_hand, swing, ground_ball, risp, result 
             FROM pitches 
             WHERE pitcher = %s AND date = %s
             ORDER BY id ASC
@@ -171,7 +171,7 @@ elif st.session_state.page == 'pitch_entry':
             st.info("No pitches entered for this game yet.")
         else:
             df["Pitch #"] = range(1, len(df) + 1)
-            df = df[["Pitch #", "pitch_type", "velocity", "swing", "ground_ball", "risp", "result"]]
+            df = df[["Pitch #", "pitch_type", "velocity", "batter_hand", "swing", "ground_ball", "risp", "result"]]
             st.dataframe(
                 df.reset_index(drop=True),
                 use_container_width=True,
