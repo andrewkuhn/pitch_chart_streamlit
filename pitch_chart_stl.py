@@ -29,18 +29,19 @@ def ensure_tables():
         )
     """)
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS pitches (
-        id SERIAL PRIMARY KEY,
-        pitcher TEXT NOT NULL,
-        date DATE NOT NULL,
-        pitch_type TEXT,
-        velocity INTEGER,
-        batter_hand TEXT CHECK (batter_hand IN ('L', 'R'))
-        swing BOOLEAN,
-        ground_ball BOOLEAN,
-        result TEXT,
-    )
-""")
+        CREATE TABLE IF NOT EXISTS pitches (
+            id SERIAL PRIMARY KEY,
+            pitcher TEXT NOT NULL,
+            date DATE NOT NULL,
+            pitch_type TEXT,
+            velocity INTEGER,
+            swing BOOLEAN,
+            ground_ball BOOLEAN,
+            risp BOOLEAN,
+            result TEXT,
+            batter_hand TEXT CHECK (batter_hand IN ('L', 'R'))
+        )
+    """)
     conn.commit()
     conn.close()
 
