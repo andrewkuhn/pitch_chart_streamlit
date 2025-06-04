@@ -81,6 +81,8 @@ if 'batter_hand' not in st.session_state:
     st.session_state.batter_hand = "R"
 if 'location' not in st.session_state:
     st.session_state.location = "MMiddle"
+if 'batter_number' not in st.session_state:
+    st.session_state.batter_number = 0
 
 st.title("Pitch Chart")
 
@@ -116,6 +118,7 @@ elif st.session_state.page == 'pitch_entry':
 
         with col2:
             batter_hand = st.radio("Batter Handedness", ["L", "R"], horizontal=True)
+            batter_number = st.number_input("Batter's Number", min_value=0, max_value=99, step=1)
             location = st.selectbox("Location in Strike Zone", ["ULeft", "UMiddle", "URight","MLeft", "MMiddle", "MRight", "LLeft", "LMiddle", "LRight"])
             swing = st.checkbox("Swing?")
             ground_ball = st.checkbox("Ground Ball?")
@@ -132,7 +135,7 @@ elif st.session_state.page == 'pitch_entry':
                     conn = get_connection()
                     cur = conn.cursor()
                     cur.execute("""
-                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, inning, swing, ground_ball, risp, result, batter_hand, location)
+                        INSERT INTO pitches (pitcher, date, pitch_type, velocity, inning, swing, ground_ball, risp, result, batter_hand, location, batter_number)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (
                         st.session_state.pitcher,
@@ -145,7 +148,8 @@ elif st.session_state.page == 'pitch_entry':
                         risp,
                         result if result != "" else None,
                         batter_hand,
-                        location
+                        location,
+                        batter_number
                         
                     ))
                     conn.commit()
@@ -169,7 +173,7 @@ elif st.session_state.page == 'pitch_entry':
     try:
         conn = get_connection()
         df = pd.read_sql("""
-            SELECT id, inning, pitch_type, velocity, batter_hand, swing, ground_ball, risp, result, location
+            SELECT id, inning, pitch_type, velocity, batter_number, batter_hand, swing, ground_ball, risp, result, location
             FROM pitches 
             WHERE pitcher = %s AND date = %s
             ORDER BY id ASC
@@ -180,7 +184,7 @@ elif st.session_state.page == 'pitch_entry':
             st.info("No pitches entered for this game yet.")
         else:
             df["Pitch #"] = range(1, len(df) + 1)
-            df = df[["Pitch #", "inning", "pitch_type", "velocity", "batter_hand", "location", "swing", "ground_ball", "risp", "result"]]
+            df = df[["Pitch #", "inning", "batter_number", "pitch_type", "velocity", "batter_hand", "location", "swing", "ground_ball", "risp", "result"]]
             st.dataframe(
                 df.reset_index(drop=True),
                 use_container_width=True,
