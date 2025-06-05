@@ -136,7 +136,7 @@ elif st.session_state.page == 'pitch_entry':
                     cur = conn.cursor()
                     cur.execute("""
                         INSERT INTO pitches (pitcher, date, pitch_type, velocity, inning, swing, ground_ball, risp, result, batter_hand, location, batter_number)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (
                         st.session_state.pitcher,
                         st.session_state.game_date,
