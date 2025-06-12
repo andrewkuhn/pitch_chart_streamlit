@@ -111,7 +111,7 @@ elif st.session_state.page == 'pitch_entry':
         col1, col2 = st.columns(2)
 
         with col1:
-            pitch_type = st.selectbox("Pitch Type", [""] + ["FF", "FT", "CH", "CU", "SL", "FC", "SP"], index=0)
+            pitch_type = st.selectbox("Pitch Type", [""] + ["FF", "FT", "CH", "CU", "SL", "SI", "FC", "SP"], index=0)
             velocity = st.number_input("Velocity", min_value=0, max_value=120, step=1, value=None)
             inning = st.selectbox("Inning", list(range(1, 10)))  # ✅ NEW LINE
             result = st.selectbox("Result", [""] + ["Ball", "Strike", "Foul Ball", "Strikeout", "Walk", "Out", "1B", "2B", "3B", "HR", "Reach On Error", "HBP", "Fielder's Choice"], index=0)
